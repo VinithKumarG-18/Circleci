@@ -27,7 +27,33 @@ jobs:
       # Run your Scala tests (assuming test.scala contains your test code)
       - run: sbt "testOnly test.scala"
 
+  deploy:
+    docker:
+      - image: cimg/openjdk:8.0
+
+    environment:
+      JVM_OPTS: -Xmx3200m
+      TERM: dumb
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "build.sbt" }}
+            - v1-dependencies-
+
+      - run: sbt compile  # Compile the Scala project
+
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies--{{ checksum "build.sbt" }}
+
+      # Additional steps for deployment can go here
+
 workflows:
   sample:
     jobs:
       - build
+      - deploy
